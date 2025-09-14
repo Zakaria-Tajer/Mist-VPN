@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	SERVER_TUN_IP   = "10.0.0.1/30"
+	SERVER_TUN_IP   = "10.0.0.1"
 	SERVER_UDP_PORT = 51820
 	BUFFERSIZE      = 1600
 )
@@ -30,15 +30,16 @@ func ServerSideReader(conn *net.UDPConn, tunIface *water.Interface) {
 			log.Printf("failed to write packet to TUN: %v", err)
 		}
 
-		log.Printf("Received %d bytes from %s", n, addr)
+		log.Printf("Received %d bytes from %s %d", n, addr)
 	}
 
 }
 
-func LogTunPackets(iface *water.Interface) {
+func LogTunPackets(conn *net.UDPConn, iface *water.Interface) {
 	buf := make([]byte, BUFFERSIZE)
 	for {
 		n, err := iface.Read(buf)
+
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -52,23 +53,22 @@ func LogTunPackets(iface *water.Interface) {
 			log.Printf("failed parse header: %v", err)
 			continue
 		}
-
 		log.Printf("TUN packet: %s -> %s proto=%d len=%d", header.Src, header.Dst, header.Protocol, n)
 
 		if !header.Dst.Equal(net.IP(SERVER_TUN_IP)) {
 
 			continue
 		}
+
 		payload := buf[header.Len:n]
 
-		if header.Protocol == 6 { // TCP
+		if header.Protocol == 6 {
 			srcPort := binary.BigEndian.Uint16(payload[0:2])
 			dstPort := binary.BigEndian.Uint16(payload[2:4])
-			// seqNum := binary.BigEndian.Uint32(payload[4:8])
-			// ackNum := binary.BigEndian.Uint32(payload[8:12])
-			dataOffset := (payload[12] >> 4) * 4
-			tcpData := payload[dataOffset:]
-			log.Printf("TCP %d -> %d, payload: %x / %q", srcPort, dstPort, tcpData, tcpData)
+			// length := binary.BigEndian.Uint16(payload[4:6])
+			// checksum := binary.BigEndian.Uint16(payload[6:8])
+			udpData := payload[8:] // actual data sent
+			log.Printf("UDP %d -> %d, payload: %x / %q", srcPort, dstPort, udpData, udpData)
 		}
 	}
 }

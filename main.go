@@ -5,13 +5,11 @@ import (
 	"zakaria/mist-vpn/client/connection"
 )
 
-
-
 func main() {
-	
 
-
+	go connection.SendDummyContent()
 	connection.InitClient()
+
 	reader.ReadPacketsFromTun0()
 
 }

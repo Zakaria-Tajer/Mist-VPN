@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	PEER_IP   = "10.0.0.1/30"
+	PEER_IP   = "192.168.100.113"
 	PEER_PORT = 51820
 )
 
