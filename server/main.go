@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	TUN_IP     = "10.0.0.1" // server TUN IP
+	TUN_IP     = "10.0.0.1"
 	MTU        = "1300"
 	BUFFERSIZE = 1600
-	UDP_PORT   = 51820
+	UDP_PORT   = 41822
 )
 
 func main() {
@@ -24,7 +24,6 @@ func main() {
 
 	log.Printf("Server TUN interface: %s", iface.Name())
 
-	// Bring interface up
 	helpers.RunBin("/bin/ip", "link", "set", "dev", iface.Name(), "mtu", "1300")
 	helpers.RunBin("/bin/ip", "addr", "add", TUN_IP, "dev", iface.Name())
 	helpers.RunBin("/bin/ip", "link", "set", "dev", iface.Name(), "up")
@@ -40,7 +39,7 @@ func main() {
 	defer conn.Close()
 	log.Printf("Listening on UDP %s", conn.LocalAddr())
 
-	// Call your server loop from server_packet_reader.go
-	// go server.LogTunPackets(conn, iface)
 	server.ServerSideReader(conn, iface)
+	server.ForwardTunToClient(iface, conn, &addr)
+	// go server.LogTunPackets(conn, iface)
 }

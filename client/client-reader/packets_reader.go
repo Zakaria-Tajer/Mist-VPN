@@ -15,10 +15,10 @@ const (
 	// I use TUN interface, so only plain IP packet, no ethernet header + mtu is set to 1300
 	BUFFERSIZE = 1600
 	MTU        = "1300"
-	TUN_IP     = "10.0.0.2/30"
+	TUN_IP     = "10.0.0.2"
 )
 
-func ReadPacketsFromTun0() {
+func ReadPacketsFromTun() {
 
 	iface, err := water.New(water.Config{})
 
@@ -49,13 +49,21 @@ func ReadPacketsFromTun0() {
 			continue
 		}
 
-		// log.Printf("isTCP: %v, header: %s", header.Protocol == 6, header)
+		if header.Dst.Equal(net.ParseIP(TUN_IP)) {
 
-		if !header.Dst.Equal(net.IP(TUN_IP)) {
+			payload := buf[header.Len:n]
 
+			connection.Client(payload)
+
+		} else {
 			continue
 		}
-		connection.Client(buf)
+
+		// if header.Protocol != 17 {
+		// 	continue
+		// }
+
+		// log.Printf("Forwarded UDP packet %d bytes: %s -> %s", n, header.Src, header.Dst)
 
 	}
 

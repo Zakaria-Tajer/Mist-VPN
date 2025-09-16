@@ -6,10 +6,9 @@ import (
 )
 
 func main() {
-
-	go connection.SendDummyContent()
 	connection.InitClient()
 
-	reader.ReadPacketsFromTun0()
+	go connection.SendDummyContent()
+	reader.ReadPacketsFromTun()
 
 }
